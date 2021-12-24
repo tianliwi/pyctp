@@ -217,7 +217,7 @@ public:
 	virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	///查询最大报单数量响应
-	virtual void OnRspQryMaxOrderVolume(CThostFtdcQryMaxOrderVolumeField *pQryMaxOrderVolume, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	virtual void OnRspQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField *pQryMaxOrderVolume, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	///投资者结算结果确认响应
 	virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
@@ -546,12 +546,6 @@ public:
 	///银行发起变更银行账号通知
 	virtual void OnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeAccount);
 
-	///请求查询分类合约响应
-	virtual void OnRspQryClassifiedInstrument(CThostFtdcInstrumentField *pInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-
-	///请求组合优惠比例响应
-	virtual void OnRspQryCombPromotionParam(CThostFtdcCombPromotionParamField *pCombPromotionParam, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-
     //-------------------------------------------------------------------------------------
     //task：任务
     //-------------------------------------------------------------------------------------
@@ -808,8 +802,6 @@ public:
 	void processRtnChangeAccountByBank(Task *task);
 
 	void processRspQryClassifiedInstrument(Task *task);
-
-	void processRspQryCombPromotionParam(Task *task);
 
 	    //-------------------------------------------------------------------------------------
     //data：回调函数的数据字典
@@ -1070,8 +1062,6 @@ public:
 	virtual void onRtnChangeAccountByBank(const dict &data) {};
 
 	virtual void onRspQryClassifiedInstrument(const dict &data, const dict &error, int reqid, bool last) {};
-
-	virtual void onRspQryCombPromotionParam(const dict &data, const dict &error, int reqid, bool last) {};
     
     //-------------------------------------------------------------------------------------
     //req:主动函数的请求字典
@@ -1260,8 +1250,4 @@ public:
 	int reqFromFutureToBankByFuture(const dict &req, int reqid);
 
 	int reqQueryBankAccountMoneyByFuture(const dict &req, int reqid);
-
-	int reqQryClassifiedInstrument(const dict &req, int reqid);
-
-	int reqQryCombPromotionParam(const dict &req, int reqid);
 };

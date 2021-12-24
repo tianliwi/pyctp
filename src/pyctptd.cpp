@@ -281,13 +281,13 @@ void TdApi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction,
 	this->task_queue.push(task);
 };
 
-void TdApi::OnRspQryMaxOrderVolume(CThostFtdcQryMaxOrderVolumeField *pQryMaxOrderVolume, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void TdApi::OnRspQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField *pQryMaxOrderVolume, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	Task task = Task();
 	task.task_name = ONRSPQRYMAXORDERVOLUME;
 	if (pQryMaxOrderVolume)
 	{
-		CThostFtdcQryMaxOrderVolumeField *task_data = new CThostFtdcQryMaxOrderVolumeField();
+		CThostFtdcQueryMaxOrderVolumeField *task_data = new CThostFtdcQueryMaxOrderVolumeField();
 		*task_data = *pQryMaxOrderVolume;
 		task.task_data = task_data;
 	}
@@ -1494,8 +1494,7 @@ void TdApi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bI
 };
 
 void TdApi::OnRtnOrder(CThostFtdcOrderField *pOrder)
-{	
-	std::cout << "debug" << std::endl;
+{
 	Task task = Task();
 	task.task_name = ONRTNORDER;
 	if (pOrder)
@@ -2346,6 +2345,7 @@ void TdApi::OnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeAccoun
 	this->task_queue.push(task);
 };
 
+/*
 void TdApi::OnRspQryClassifiedInstrument(CThostFtdcInstrumentField *pInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
 	Task task = Task();
@@ -2387,7 +2387,7 @@ void TdApi::OnRspQryCombPromotionParam(CThostFtdcCombPromotionParamField *pCombP
 	task.task_last = bIsLast;
 	this->task_queue.push(task);
 };
-
+*/
 
 ///-------------------------------------------------------------------------------------
 ///工作线程从队列中取出数据，转化为python对象后，进行推送
@@ -3158,12 +3158,6 @@ void TdApi::processTask()
 				this->processRspQryClassifiedInstrument(&task);
 				break;
 			}
-
-			case ONRSPQRYCOMBPROMOTIONPARAM:
-			{
-				this->processRspQryCombPromotionParam(&task);
-				break;
-			}
             };
         }
     }
@@ -3197,6 +3191,7 @@ void TdApi::processRspAuthenticate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcRspAuthenticateField *task_data = (CThostFtdcRspAuthenticateField*)task->task_data;
+
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["UserProductInfo"] = toUtf(task_data->UserProductInfo);
@@ -3394,7 +3389,6 @@ void TdApi::processRspOrderInsert(Task *task)
 		CThostFtdcInputOrderField *task_data = (CThostFtdcInputOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -3420,7 +3414,6 @@ void TdApi::processRspOrderInsert(Task *task)
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3446,7 +3439,6 @@ void TdApi::processRspParkedOrderInsert(Task *task)
 		CThostFtdcParkedOrderField *task_data = (CThostFtdcParkedOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -3477,7 +3469,6 @@ void TdApi::processRspParkedOrderInsert(Task *task)
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3514,14 +3505,12 @@ void TdApi::processRspParkedOrderAction(Task *task)
 		data["LimitPrice"] = task_data->LimitPrice;
 		data["VolumeChange"] = task_data->VolumeChange;
 		data["UserID"] = toUtf(task_data->UserID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ParkedOrderActionID"] = toUtf(task_data->ParkedOrderActionID);
 		data["UserType"] = task_data->UserType;
 		data["Status"] = task_data->Status;
 		data["ErrorID"] = task_data->ErrorID;
 		data["ErrorMsg"] = toUtf(task_data->ErrorMsg);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3558,9 +3547,7 @@ void TdApi::processRspOrderAction(Task *task)
 		data["LimitPrice"] = task_data->LimitPrice;
 		data["VolumeChange"] = task_data->VolumeChange;
 		data["UserID"] = toUtf(task_data->UserID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3583,10 +3570,9 @@ void TdApi::processRspQryMaxOrderVolume(Task *task)
 	dict data;
 	if (task->task_data)
 	{
-		CThostFtdcQryMaxOrderVolumeField *task_data = (CThostFtdcQryMaxOrderVolumeField*)task->task_data;
+		CThostFtdcQueryMaxOrderVolumeField *task_data = (CThostFtdcQueryMaxOrderVolumeField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["Direction"] = task_data->Direction;
 		data["OffsetFlag"] = task_data->OffsetFlag;
 		data["HedgeFlag"] = task_data->HedgeFlag;
@@ -3691,7 +3677,6 @@ void TdApi::processRspExecOrderInsert(Task *task)
 		CThostFtdcInputExecOrderField *task_data = (CThostFtdcInputExecOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExecOrderRef"] = toUtf(task_data->ExecOrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -3708,7 +3693,6 @@ void TdApi::processRspExecOrderInsert(Task *task)
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3743,9 +3727,7 @@ void TdApi::processRspExecOrderAction(Task *task)
 		data["ExecOrderSysID"] = toUtf(task_data->ExecOrderSysID);
 		data["ActionFlag"] = task_data->ActionFlag;
 		data["UserID"] = toUtf(task_data->UserID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3771,12 +3753,10 @@ void TdApi::processRspForQuoteInsert(Task *task)
 		CThostFtdcInputForQuoteField *task_data = (CThostFtdcInputForQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ForQuoteRef"] = toUtf(task_data->ForQuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3802,7 +3782,6 @@ void TdApi::processRspQuoteInsert(Task *task)
 		CThostFtdcInputQuoteField *task_data = (CThostFtdcInputQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["QuoteRef"] = toUtf(task_data->QuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["AskPrice"] = task_data->AskPrice;
@@ -3821,7 +3800,6 @@ void TdApi::processRspQuoteInsert(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3856,10 +3834,8 @@ void TdApi::processRspQuoteAction(Task *task)
 		data["QuoteSysID"] = toUtf(task_data->QuoteSysID);
 		data["ActionFlag"] = task_data->ActionFlag;
 		data["UserID"] = toUtf(task_data->UserID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3892,7 +3868,6 @@ void TdApi::processRspBatchOrderAction(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
 		delete task_data;
@@ -3917,7 +3892,6 @@ void TdApi::processRspOptionSelfCloseInsert(Task *task)
 		CThostFtdcInputOptionSelfCloseField *task_data = (CThostFtdcInputOptionSelfCloseField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OptionSelfCloseRef"] = toUtf(task_data->OptionSelfCloseRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -3930,7 +3904,6 @@ void TdApi::processRspOptionSelfCloseInsert(Task *task)
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3965,9 +3938,7 @@ void TdApi::processRspOptionSelfCloseAction(Task *task)
 		data["OptionSelfCloseSysID"] = toUtf(task_data->OptionSelfCloseSysID);
 		data["ActionFlag"] = task_data->ActionFlag;
 		data["UserID"] = toUtf(task_data->UserID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -3993,7 +3964,6 @@ void TdApi::processRspCombActionInsert(Task *task)
 		CThostFtdcInputCombActionField *task_data = (CThostFtdcInputCombActionField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["CombActionRef"] = toUtf(task_data->CombActionRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Direction"] = task_data->Direction;
@@ -4001,7 +3971,6 @@ void TdApi::processRspCombActionInsert(Task *task)
 		data["CombDirection"] = task_data->CombDirection;
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["FrontID"] = task_data->FrontID;
@@ -4030,7 +3999,6 @@ void TdApi::processRspQryOrder(Task *task)
 		CThostFtdcOrderField *task_data = (CThostFtdcOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -4053,7 +4021,6 @@ void TdApi::processRspQryOrder(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -4089,7 +4056,6 @@ void TdApi::processRspQryOrder(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -4116,7 +4082,6 @@ void TdApi::processRspQryTrade(Task *task)
 		CThostFtdcTradeField *task_data = (CThostFtdcTradeField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
@@ -4126,7 +4091,6 @@ void TdApi::processRspQryTrade(Task *task)
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
 		data["TradingRole"] = task_data->TradingRole;
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["OffsetFlag"] = task_data->OffsetFlag;
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["Price"] = task_data->Price;
@@ -4167,7 +4131,6 @@ void TdApi::processRspQryInvestorPosition(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInvestorPositionField *task_data = (CThostFtdcInvestorPositionField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
 		data["PosiDirection"] = task_data->PosiDirection;
@@ -4368,7 +4331,6 @@ void TdApi::processRspQryInstrumentMarginRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInstrumentMarginRateField *task_data = (CThostFtdcInstrumentMarginRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestorRange"] = task_data->InvestorRange;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
@@ -4401,7 +4363,6 @@ void TdApi::processRspQryInstrumentCommissionRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInstrumentCommissionRateField *task_data = (CThostFtdcInstrumentCommissionRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestorRange"] = task_data->InvestorRange;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
@@ -4458,7 +4419,6 @@ void TdApi::processRspQryProduct(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcProductField *task_data = (CThostFtdcProductField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ProductName"] = toUtf(task_data->ProductName);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ProductClass"] = task_data->ProductClass;
@@ -4473,7 +4433,6 @@ void TdApi::processRspQryProduct(Task *task)
 		data["CloseDealType"] = task_data->CloseDealType;
 		data["TradeCurrencyID"] = toUtf(task_data->TradeCurrencyID);
 		data["MortgageFundUseRange"] = task_data->MortgageFundUseRange;
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["UnderlyingMultiple"] = task_data->UnderlyingMultiple;
 		data["ProductID"] = toUtf(task_data->ProductID);
 		data["ExchangeProductID"] = toUtf(task_data->ExchangeProductID);
@@ -4497,11 +4456,8 @@ void TdApi::processRspQryInstrument(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInstrumentField *task_data = (CThostFtdcInstrumentField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InstrumentName"] = toUtf(task_data->InstrumentName);
-		data["reserve2"] = toUtf(task_data->reserve2);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["ProductClass"] = task_data->ProductClass;
 		data["DeliveryYear"] = task_data->DeliveryYear;
 		data["DeliveryMonth"] = task_data->DeliveryMonth;
@@ -4523,7 +4479,6 @@ void TdApi::processRspQryInstrument(Task *task)
 		data["LongMarginRatio"] = task_data->LongMarginRatio;
 		data["ShortMarginRatio"] = task_data->ShortMarginRatio;
 		data["MaxMarginSideAlgorithm"] = task_data->MaxMarginSideAlgorithm;
-		data["reserve4"] = toUtf(task_data->reserve4);
 		data["StrikePrice"] = task_data->StrikePrice;
 		data["OptionsType"] = task_data->OptionsType;
 		data["UnderlyingMultiple"] = task_data->UnderlyingMultiple;
@@ -4553,9 +4508,7 @@ void TdApi::processRspQryDepthMarketData(Task *task)
 	{
 		CThostFtdcDepthMarketDataField *task_data = (CThostFtdcDepthMarketDataField*)task->task_data;
 		data["TradingDay"] = toUtf(task_data->TradingDay);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["LastPrice"] = task_data->LastPrice;
 		data["PreSettlementPrice"] = task_data->PreSettlementPrice;
 		data["PreClosePrice"] = task_data->PreClosePrice;
@@ -4670,7 +4623,6 @@ void TdApi::processRspQryInvestorPositionDetail(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInvestorPositionDetailField *task_data = (CThostFtdcInvestorPositionDetailField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
 		data["HedgeFlag"] = task_data->HedgeFlag;
@@ -4682,7 +4634,6 @@ void TdApi::processRspQryInvestorPositionDetail(Task *task)
 		data["TradingDay"] = toUtf(task_data->TradingDay);
 		data["SettlementID"] = task_data->SettlementID;
 		data["TradeType"] = task_data->TradeType;
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["CloseProfitByDate"] = task_data->CloseProfitByDate;
 		data["CloseProfitByTrade"] = task_data->CloseProfitByTrade;
@@ -4779,7 +4730,6 @@ void TdApi::processRspQryInvestorPositionCombineDetail(Task *task)
 		data["InvestorID"] = toUtf(task_data->InvestorID);
 		data["ComTradeID"] = toUtf(task_data->ComTradeID);
 		data["TradeID"] = toUtf(task_data->TradeID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["Direction"] = task_data->Direction;
 		data["TotalAmt"] = task_data->TotalAmt;
@@ -4789,7 +4739,6 @@ void TdApi::processRspQryInvestorPositionCombineDetail(Task *task)
 		data["MarginRateByVolume"] = task_data->MarginRateByVolume;
 		data["LegID"] = task_data->LegID;
 		data["LegMultiple"] = task_data->LegMultiple;
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TradeGroupID"] = task_data->TradeGroupID;
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
@@ -4843,7 +4792,6 @@ void TdApi::processRspQryEWarrantOffset(Task *task)
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["Direction"] = task_data->Direction;
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["Volume"] = task_data->Volume;
@@ -4869,7 +4817,6 @@ void TdApi::processRspQryInvestorProductGroupMargin(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInvestorProductGroupMarginField *task_data = (CThostFtdcInvestorProductGroupMarginField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
 		data["TradingDay"] = toUtf(task_data->TradingDay);
@@ -4920,7 +4867,6 @@ void TdApi::processRspQryExchangeMarginRate(Task *task)
 	{
 		CThostFtdcExchangeMarginRateField *task_data = (CThostFtdcExchangeMarginRateField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["LongMarginRatioByMoney"] = task_data->LongMarginRatioByMoney;
 		data["LongMarginRatioByVolume"] = task_data->LongMarginRatioByVolume;
@@ -4949,7 +4895,6 @@ void TdApi::processRspQryExchangeMarginRateAdjust(Task *task)
 	{
 		CThostFtdcExchangeMarginRateAdjustField *task_data = (CThostFtdcExchangeMarginRateAdjustField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["LongMarginRatioByMoney"] = task_data->LongMarginRatioByMoney;
 		data["LongMarginRatioByVolume"] = task_data->LongMarginRatioByVolume;
@@ -5034,7 +4979,6 @@ void TdApi::processRspQryProductExchRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcProductExchRateField *task_data = (CThostFtdcProductExchRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["QuoteCurrencyID"] = toUtf(task_data->QuoteCurrencyID);
 		data["ExchangeRate"] = task_data->ExchangeRate;
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
@@ -5059,9 +5003,7 @@ void TdApi::processRspQryProductGroup(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcProductGroupField *task_data = (CThostFtdcProductGroupField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["ProductID"] = toUtf(task_data->ProductID);
 		data["ProductGroupID"] = toUtf(task_data->ProductGroupID);
 		delete task_data;
@@ -5084,7 +5026,6 @@ void TdApi::processRspQryMMInstrumentCommissionRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcMMInstrumentCommissionRateField *task_data = (CThostFtdcMMInstrumentCommissionRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestorRange"] = task_data->InvestorRange;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
@@ -5115,7 +5056,6 @@ void TdApi::processRspQryMMOptionInstrCommRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcMMOptionInstrCommRateField *task_data = (CThostFtdcMMOptionInstrCommRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestorRange"] = task_data->InvestorRange;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
@@ -5148,7 +5088,6 @@ void TdApi::processRspQryInstrumentOrderCommRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInstrumentOrderCommRateField *task_data = (CThostFtdcInstrumentOrderCommRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestorRange"] = task_data->InvestorRange;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
@@ -5298,7 +5237,6 @@ void TdApi::processRspQryOptionInstrTradeCost(Task *task)
 		CThostFtdcOptionInstrTradeCostField *task_data = (CThostFtdcOptionInstrTradeCostField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["FixedMargin"] = task_data->FixedMargin;
 		data["MiniMargin"] = task_data->MiniMargin;
@@ -5328,7 +5266,6 @@ void TdApi::processRspQryOptionInstrCommRate(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcOptionInstrCommRateField *task_data = (CThostFtdcOptionInstrCommRateField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InvestorRange"] = task_data->InvestorRange;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
@@ -5365,7 +5302,6 @@ void TdApi::processRspQryExecOrder(Task *task)
 		CThostFtdcExecOrderField *task_data = (CThostFtdcExecOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExecOrderRef"] = toUtf(task_data->ExecOrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -5381,7 +5317,6 @@ void TdApi::processRspQryExecOrder(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -5405,7 +5340,6 @@ void TdApi::processRspQryExecOrder(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -5432,14 +5366,12 @@ void TdApi::processRspQryForQuote(Task *task)
 		CThostFtdcForQuoteField *task_data = (CThostFtdcForQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ForQuoteRef"] = toUtf(task_data->ForQuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["ForQuoteLocalID"] = toUtf(task_data->ForQuoteLocalID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["InsertDate"] = toUtf(task_data->InsertDate);
@@ -5451,7 +5383,6 @@ void TdApi::processRspQryForQuote(Task *task)
 		data["ActiveUserID"] = toUtf(task_data->ActiveUserID);
 		data["BrokerForQutoSeq"] = task_data->BrokerForQutoSeq;
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -5478,7 +5409,6 @@ void TdApi::processRspQryQuote(Task *task)
 		CThostFtdcQuoteField *task_data = (CThostFtdcQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["QuoteRef"] = toUtf(task_data->QuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["AskPrice"] = task_data->AskPrice;
@@ -5495,7 +5425,6 @@ void TdApi::processRspQryQuote(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["NotifySequence"] = task_data->NotifySequence;
@@ -5524,7 +5453,6 @@ void TdApi::processRspQryQuote(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -5551,7 +5479,6 @@ void TdApi::processRspQryOptionSelfClose(Task *task)
 		CThostFtdcOptionSelfCloseField *task_data = (CThostFtdcOptionSelfCloseField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OptionSelfCloseRef"] = toUtf(task_data->OptionSelfCloseRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -5563,7 +5490,6 @@ void TdApi::processRspQryOptionSelfClose(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -5587,7 +5513,6 @@ void TdApi::processRspQryOptionSelfClose(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -5642,7 +5567,6 @@ void TdApi::processRspQryCombInstrumentGuard(Task *task)
 	{
 		CThostFtdcCombInstrumentGuardField *task_data = (CThostFtdcCombInstrumentGuardField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["GuarantRatio"] = task_data->GuarantRatio;
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
@@ -5668,7 +5592,6 @@ void TdApi::processRspQryCombAction(Task *task)
 		CThostFtdcCombActionField *task_data = (CThostFtdcCombActionField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["CombActionRef"] = toUtf(task_data->CombActionRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Direction"] = task_data->Direction;
@@ -5679,7 +5602,6 @@ void TdApi::processRspQryCombAction(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["ActionStatus"] = task_data->ActionStatus;
@@ -5691,7 +5613,6 @@ void TdApi::processRspQryCombAction(Task *task)
 		data["SessionID"] = task_data->SessionID;
 		data["UserProductInfo"] = toUtf(task_data->UserProductInfo);
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["ComTradeID"] = toUtf(task_data->ComTradeID);
 		data["BranchID"] = toUtf(task_data->BranchID);
@@ -5821,7 +5742,6 @@ void TdApi::processRtnOrder(Task *task)
 		CThostFtdcOrderField *task_data = (CThostFtdcOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -5844,7 +5764,6 @@ void TdApi::processRtnOrder(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -5880,7 +5799,6 @@ void TdApi::processRtnOrder(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -5899,7 +5817,6 @@ void TdApi::processRtnTrade(Task *task)
 		CThostFtdcTradeField *task_data = (CThostFtdcTradeField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
@@ -5909,7 +5826,6 @@ void TdApi::processRtnTrade(Task *task)
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
 		data["TradingRole"] = task_data->TradingRole;
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["OffsetFlag"] = task_data->OffsetFlag;
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["Price"] = task_data->Price;
@@ -5944,7 +5860,6 @@ void TdApi::processErrRtnOrderInsert(Task *task)
 		CThostFtdcInputOrderField *task_data = (CThostFtdcInputOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -5970,7 +5885,6 @@ void TdApi::processErrRtnOrderInsert(Task *task)
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6018,10 +5932,8 @@ void TdApi::processErrRtnOrderAction(Task *task)
 		data["OrderActionStatus"] = task_data->OrderActionStatus;
 		data["UserID"] = toUtf(task_data->UserID);
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BranchID"] = toUtf(task_data->BranchID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6046,9 +5958,7 @@ void TdApi::processRtnInstrumentStatus(Task *task)
 	{
 		CThostFtdcInstrumentStatusField *task_data = (CThostFtdcInstrumentStatusField*)task->task_data;
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["SettlementGroupID"] = toUtf(task_data->SettlementGroupID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["InstrumentStatus"] = task_data->InstrumentStatus;
 		data["TradingSegmentSN"] = task_data->TradingSegmentSN;
 		data["EnterTime"] = toUtf(task_data->EnterTime);
@@ -6112,7 +6022,6 @@ void TdApi::processRtnErrorConditionalOrder(Task *task)
 		CThostFtdcErrorConditionalOrderField *task_data = (CThostFtdcErrorConditionalOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -6135,7 +6044,6 @@ void TdApi::processRtnErrorConditionalOrder(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -6173,7 +6081,6 @@ void TdApi::processRtnErrorConditionalOrder(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -6192,7 +6099,6 @@ void TdApi::processRtnExecOrder(Task *task)
 		CThostFtdcExecOrderField *task_data = (CThostFtdcExecOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExecOrderRef"] = toUtf(task_data->ExecOrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -6208,7 +6114,6 @@ void TdApi::processRtnExecOrder(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -6232,7 +6137,6 @@ void TdApi::processRtnExecOrder(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -6251,7 +6155,6 @@ void TdApi::processErrRtnExecOrderInsert(Task *task)
 		CThostFtdcInputExecOrderField *task_data = (CThostFtdcInputExecOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExecOrderRef"] = toUtf(task_data->ExecOrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -6268,7 +6171,6 @@ void TdApi::processErrRtnExecOrderInsert(Task *task)
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6315,10 +6217,8 @@ void TdApi::processErrRtnExecOrderAction(Task *task)
 		data["UserID"] = toUtf(task_data->UserID);
 		data["ActionType"] = task_data->ActionType;
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BranchID"] = toUtf(task_data->BranchID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6344,12 +6244,10 @@ void TdApi::processErrRtnForQuoteInsert(Task *task)
 		CThostFtdcInputForQuoteField *task_data = (CThostFtdcInputForQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ForQuoteRef"] = toUtf(task_data->ForQuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6375,7 +6273,6 @@ void TdApi::processRtnQuote(Task *task)
 		CThostFtdcQuoteField *task_data = (CThostFtdcQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["QuoteRef"] = toUtf(task_data->QuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["AskPrice"] = task_data->AskPrice;
@@ -6392,7 +6289,6 @@ void TdApi::processRtnQuote(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["NotifySequence"] = task_data->NotifySequence;
@@ -6421,7 +6317,6 @@ void TdApi::processRtnQuote(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -6440,7 +6335,6 @@ void TdApi::processErrRtnQuoteInsert(Task *task)
 		CThostFtdcInputQuoteField *task_data = (CThostFtdcInputQuoteField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["QuoteRef"] = toUtf(task_data->QuoteRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["AskPrice"] = task_data->AskPrice;
@@ -6459,7 +6353,6 @@ void TdApi::processErrRtnQuoteInsert(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6505,10 +6398,8 @@ void TdApi::processErrRtnQuoteAction(Task *task)
 		data["OrderActionStatus"] = task_data->OrderActionStatus;
 		data["UserID"] = toUtf(task_data->UserID);
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BranchID"] = toUtf(task_data->BranchID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6533,7 +6424,6 @@ void TdApi::processRtnForQuoteRsp(Task *task)
 	{
 		CThostFtdcForQuoteRspField *task_data = (CThostFtdcForQuoteRspField*)task->task_data;
 		data["TradingDay"] = toUtf(task_data->TradingDay);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ForQuoteSysID"] = toUtf(task_data->ForQuoteSysID);
 		data["ForQuoteTime"] = toUtf(task_data->ForQuoteTime);
 		data["ActionDay"] = toUtf(task_data->ActionDay);
@@ -6587,7 +6477,6 @@ void TdApi::processErrRtnBatchOrderAction(Task *task)
 		data["UserID"] = toUtf(task_data->UserID);
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
 		delete task_data;
@@ -6612,7 +6501,6 @@ void TdApi::processRtnOptionSelfClose(Task *task)
 		CThostFtdcOptionSelfCloseField *task_data = (CThostFtdcOptionSelfCloseField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OptionSelfCloseRef"] = toUtf(task_data->OptionSelfCloseRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -6624,7 +6512,6 @@ void TdApi::processRtnOptionSelfClose(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["OrderSubmitStatus"] = task_data->OrderSubmitStatus;
@@ -6648,7 +6535,6 @@ void TdApi::processRtnOptionSelfClose(Task *task)
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["ExchangeInstID"] = toUtf(task_data->ExchangeInstID);
@@ -6667,7 +6553,6 @@ void TdApi::processErrRtnOptionSelfCloseInsert(Task *task)
 		CThostFtdcInputOptionSelfCloseField *task_data = (CThostFtdcInputOptionSelfCloseField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OptionSelfCloseRef"] = toUtf(task_data->OptionSelfCloseRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Volume"] = task_data->Volume;
@@ -6680,7 +6565,6 @@ void TdApi::processErrRtnOptionSelfCloseInsert(Task *task)
 		data["AccountID"] = toUtf(task_data->AccountID);
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6726,10 +6610,8 @@ void TdApi::processErrRtnOptionSelfCloseAction(Task *task)
 		data["OrderActionStatus"] = task_data->OrderActionStatus;
 		data["UserID"] = toUtf(task_data->UserID);
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["BranchID"] = toUtf(task_data->BranchID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6755,7 +6637,6 @@ void TdApi::processRtnCombAction(Task *task)
 		CThostFtdcCombActionField *task_data = (CThostFtdcCombActionField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["CombActionRef"] = toUtf(task_data->CombActionRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Direction"] = task_data->Direction;
@@ -6766,7 +6647,6 @@ void TdApi::processRtnCombAction(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["ParticipantID"] = toUtf(task_data->ParticipantID);
 		data["ClientID"] = toUtf(task_data->ClientID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["TraderID"] = toUtf(task_data->TraderID);
 		data["InstallID"] = task_data->InstallID;
 		data["ActionStatus"] = task_data->ActionStatus;
@@ -6778,7 +6658,6 @@ void TdApi::processRtnCombAction(Task *task)
 		data["SessionID"] = task_data->SessionID;
 		data["UserProductInfo"] = toUtf(task_data->UserProductInfo);
 		data["StatusMsg"] = toUtf(task_data->StatusMsg);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["ComTradeID"] = toUtf(task_data->ComTradeID);
 		data["BranchID"] = toUtf(task_data->BranchID);
@@ -6800,7 +6679,6 @@ void TdApi::processErrRtnCombActionInsert(Task *task)
 		CThostFtdcInputCombActionField *task_data = (CThostFtdcInputCombActionField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["CombActionRef"] = toUtf(task_data->CombActionRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["Direction"] = task_data->Direction;
@@ -6808,7 +6686,6 @@ void TdApi::processErrRtnCombActionInsert(Task *task)
 		data["CombDirection"] = task_data->CombDirection;
 		data["HedgeFlag"] = task_data->HedgeFlag;
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["FrontID"] = task_data->FrontID;
@@ -6861,7 +6738,6 @@ void TdApi::processRspQryParkedOrder(Task *task)
 		CThostFtdcParkedOrderField *task_data = (CThostFtdcParkedOrderField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["InvestorID"] = toUtf(task_data->InvestorID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["OrderRef"] = toUtf(task_data->OrderRef);
 		data["UserID"] = toUtf(task_data->UserID);
 		data["OrderPriceType"] = task_data->OrderPriceType;
@@ -6892,7 +6768,6 @@ void TdApi::processRspQryParkedOrder(Task *task)
 		data["CurrencyID"] = toUtf(task_data->CurrencyID);
 		data["ClientID"] = toUtf(task_data->ClientID);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -6929,14 +6804,12 @@ void TdApi::processRspQryParkedOrderAction(Task *task)
 		data["LimitPrice"] = task_data->LimitPrice;
 		data["VolumeChange"] = task_data->VolumeChange;
 		data["UserID"] = toUtf(task_data->UserID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ParkedOrderActionID"] = toUtf(task_data->ParkedOrderActionID);
 		data["UserType"] = task_data->UserType;
 		data["Status"] = task_data->Status;
 		data["ErrorID"] = task_data->ErrorID;
 		data["ErrorMsg"] = toUtf(task_data->ErrorMsg);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
@@ -7019,7 +6892,6 @@ void TdApi::processRspQryBrokerTradingAlgos(Task *task)
 		CThostFtdcBrokerTradingAlgosField *task_data = (CThostFtdcBrokerTradingAlgosField*)task->task_data;
 		data["BrokerID"] = toUtf(task_data->BrokerID);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["HandlePositionAlgoID"] = task_data->HandlePositionAlgoID;
 		data["FindMarginRateAlgoID"] = task_data->FindMarginRateAlgoID;
 		data["HandleTradingAccountAlgoID"] = task_data->HandleTradingAccountAlgoID;
@@ -8427,11 +8299,8 @@ void TdApi::processRspQryClassifiedInstrument(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcInstrumentField *task_data = (CThostFtdcInstrumentField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["InstrumentName"] = toUtf(task_data->InstrumentName);
-		data["reserve2"] = toUtf(task_data->reserve2);
-		data["reserve3"] = toUtf(task_data->reserve3);
 		data["ProductClass"] = task_data->ProductClass;
 		data["DeliveryYear"] = task_data->DeliveryYear;
 		data["DeliveryMonth"] = task_data->DeliveryMonth;
@@ -8453,7 +8322,6 @@ void TdApi::processRspQryClassifiedInstrument(Task *task)
 		data["LongMarginRatio"] = task_data->LongMarginRatio;
 		data["ShortMarginRatio"] = task_data->ShortMarginRatio;
 		data["MaxMarginSideAlgorithm"] = task_data->MaxMarginSideAlgorithm;
-		data["reserve4"] = toUtf(task_data->reserve4);
 		data["StrikePrice"] = task_data->StrikePrice;
 		data["OptionsType"] = task_data->OptionsType;
 		data["UnderlyingMultiple"] = task_data->UnderlyingMultiple;
@@ -8473,30 +8341,6 @@ void TdApi::processRspQryClassifiedInstrument(Task *task)
 		delete task_error;
 	}
 	this->onRspQryClassifiedInstrument(data, error, task->task_id, task->task_last);
-};
-
-void TdApi::processRspQryCombPromotionParam(Task *task)
-{
-	gil_scoped_acquire acquire;
-	dict data;
-	if (task->task_data)
-	{
-		CThostFtdcCombPromotionParamField *task_data = (CThostFtdcCombPromotionParamField*)task->task_data;
-		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["InstrumentID"] = toUtf(task_data->InstrumentID);
-		data["CombHedgeFlag"] = toUtf(task_data->CombHedgeFlag);
-		data["Xparameter"] = task_data->Xparameter;
-		delete task_data;
-	}
-	dict error;
-	if (task->task_error)
-	{
-		CThostFtdcRspInfoField *task_error = (CThostFtdcRspInfoField*)task->task_error;
-		error["ErrorID"] = task_error->ErrorID;
-		error["ErrorMsg"] = toUtf(task_error->ErrorMsg);
-		delete task_error;
-	}
-	this->onRspQryCombPromotionParam(data, error, task->task_id, task->task_last);
 };
 
 ///-------------------------------------------------------------------------------------
@@ -8593,7 +8437,6 @@ int TdApi::reqUserLogin(const dict &req, int reqid)
 	getString(req, "ProtocolInfo", myreq.ProtocolInfo);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "OneTimePassword", myreq.OneTimePassword);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "LoginRemark", myreq.LoginRemark);
 	getInt(req, "ClientIPPort", &myreq.ClientIPPort);
 	getString(req, "ClientIPAddress", myreq.ClientIPAddress);
@@ -8681,7 +8524,6 @@ int TdApi::reqUserLoginWithCaptcha(const dict &req, int reqid)
 	getString(req, "InterfaceProductInfo", myreq.InterfaceProductInfo);
 	getString(req, "ProtocolInfo", myreq.ProtocolInfo);
 	getString(req, "MacAddress", myreq.MacAddress);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "LoginRemark", myreq.LoginRemark);
 	getString(req, "Captcha", myreq.Captcha);
 	getInt(req, "ClientIPPort", &myreq.ClientIPPort);
@@ -8702,7 +8544,6 @@ int TdApi::reqUserLoginWithText(const dict &req, int reqid)
 	getString(req, "InterfaceProductInfo", myreq.InterfaceProductInfo);
 	getString(req, "ProtocolInfo", myreq.ProtocolInfo);
 	getString(req, "MacAddress", myreq.MacAddress);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "LoginRemark", myreq.LoginRemark);
 	getString(req, "Text", myreq.Text);
 	getInt(req, "ClientIPPort", &myreq.ClientIPPort);
@@ -8723,7 +8564,6 @@ int TdApi::reqUserLoginWithOTP(const dict &req, int reqid)
 	getString(req, "InterfaceProductInfo", myreq.InterfaceProductInfo);
 	getString(req, "ProtocolInfo", myreq.ProtocolInfo);
 	getString(req, "MacAddress", myreq.MacAddress);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "LoginRemark", myreq.LoginRemark);
 	getString(req, "OTPPassword", myreq.OTPPassword);
 	getInt(req, "ClientIPPort", &myreq.ClientIPPort);
@@ -8738,7 +8578,6 @@ int TdApi::reqOrderInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "OrderRef", myreq.OrderRef);
 	getString(req, "UserID", myreq.UserID);
 	getChar(req, "OrderPriceType", &myreq.OrderPriceType);
@@ -8764,7 +8603,6 @@ int TdApi::reqOrderInsert(const dict &req, int reqid)
 	getString(req, "AccountID", myreq.AccountID);
 	getString(req, "CurrencyID", myreq.CurrencyID);
 	getString(req, "ClientID", myreq.ClientID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -8778,7 +8616,6 @@ int TdApi::reqParkedOrderInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "OrderRef", myreq.OrderRef);
 	getString(req, "UserID", myreq.UserID);
 	getChar(req, "OrderPriceType", &myreq.OrderPriceType);
@@ -8809,7 +8646,6 @@ int TdApi::reqParkedOrderInsert(const dict &req, int reqid)
 	getString(req, "CurrencyID", myreq.CurrencyID);
 	getString(req, "ClientID", myreq.ClientID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -8834,14 +8670,12 @@ int TdApi::reqParkedOrderAction(const dict &req, int reqid)
 	getDouble(req, "LimitPrice", &myreq.LimitPrice);
 	getInt(req, "VolumeChange", &myreq.VolumeChange);
 	getString(req, "UserID", myreq.UserID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ParkedOrderActionID", myreq.ParkedOrderActionID);
 	getChar(req, "UserType", &myreq.UserType);
 	getChar(req, "Status", &myreq.Status);
 	getInt(req, "ErrorID", &myreq.ErrorID);
 	getString(req, "ErrorMsg", myreq.ErrorMsg);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -8866,9 +8700,7 @@ int TdApi::reqOrderAction(const dict &req, int reqid)
 	getDouble(req, "LimitPrice", &myreq.LimitPrice);
 	getInt(req, "VolumeChange", &myreq.VolumeChange);
 	getString(req, "UserID", myreq.UserID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -8878,11 +8710,10 @@ int TdApi::reqOrderAction(const dict &req, int reqid)
 
 int TdApi::reqQryMaxOrderVolume(const dict &req, int reqid)
 {
-	CThostFtdcQryMaxOrderVolumeField myreq = CThostFtdcQryMaxOrderVolumeField();
+	CThostFtdcQueryMaxOrderVolumeField myreq = CThostFtdcQueryMaxOrderVolumeField();
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "Direction", &myreq.Direction);
 	getChar(req, "OffsetFlag", &myreq.OffsetFlag);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
@@ -8890,7 +8721,7 @@ int TdApi::reqQryMaxOrderVolume(const dict &req, int reqid)
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
-	int i = this->api->ReqQryMaxOrderVolume(&myreq, reqid);
+	int i = this->api->ReqQueryMaxOrderVolume(&myreq, reqid);
 	return i;
 };
 
@@ -8939,7 +8770,6 @@ int TdApi::reqExecOrderInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExecOrderRef", myreq.ExecOrderRef);
 	getString(req, "UserID", myreq.UserID);
 	getInt(req, "Volume", &myreq.Volume);
@@ -8956,7 +8786,6 @@ int TdApi::reqExecOrderInsert(const dict &req, int reqid)
 	getString(req, "AccountID", myreq.AccountID);
 	getString(req, "CurrencyID", myreq.CurrencyID);
 	getString(req, "ClientID", myreq.ClientID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -8979,9 +8808,7 @@ int TdApi::reqExecOrderAction(const dict &req, int reqid)
 	getString(req, "ExecOrderSysID", myreq.ExecOrderSysID);
 	getChar(req, "ActionFlag", &myreq.ActionFlag);
 	getString(req, "UserID", myreq.UserID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -8995,12 +8822,10 @@ int TdApi::reqForQuoteInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ForQuoteRef", myreq.ForQuoteRef);
 	getString(req, "UserID", myreq.UserID);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -9014,7 +8839,6 @@ int TdApi::reqQuoteInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "QuoteRef", myreq.QuoteRef);
 	getString(req, "UserID", myreq.UserID);
 	getDouble(req, "AskPrice", &myreq.AskPrice);
@@ -9033,7 +8857,6 @@ int TdApi::reqQuoteInsert(const dict &req, int reqid)
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "ClientID", myreq.ClientID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -9056,10 +8879,8 @@ int TdApi::reqQuoteAction(const dict &req, int reqid)
 	getString(req, "QuoteSysID", myreq.QuoteSysID);
 	getChar(req, "ActionFlag", &myreq.ActionFlag);
 	getString(req, "UserID", myreq.UserID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "ClientID", myreq.ClientID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -9080,7 +8901,6 @@ int TdApi::reqBatchOrderAction(const dict &req, int reqid)
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "UserID", myreq.UserID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "IPAddress", myreq.IPAddress);
 	int i = this->api->ReqBatchOrderAction(&myreq, reqid);
@@ -9093,7 +8913,6 @@ int TdApi::reqOptionSelfCloseInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "OptionSelfCloseRef", myreq.OptionSelfCloseRef);
 	getString(req, "UserID", myreq.UserID);
 	getInt(req, "Volume", &myreq.Volume);
@@ -9106,7 +8925,6 @@ int TdApi::reqOptionSelfCloseInsert(const dict &req, int reqid)
 	getString(req, "AccountID", myreq.AccountID);
 	getString(req, "CurrencyID", myreq.CurrencyID);
 	getString(req, "ClientID", myreq.ClientID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -9129,9 +8947,7 @@ int TdApi::reqOptionSelfCloseAction(const dict &req, int reqid)
 	getString(req, "OptionSelfCloseSysID", myreq.OptionSelfCloseSysID);
 	getChar(req, "ActionFlag", &myreq.ActionFlag);
 	getString(req, "UserID", myreq.UserID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
@@ -9145,7 +8961,6 @@ int TdApi::reqCombActionInsert(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "CombActionRef", myreq.CombActionRef);
 	getString(req, "UserID", myreq.UserID);
 	getChar(req, "Direction", &myreq.Direction);
@@ -9153,7 +8968,6 @@ int TdApi::reqCombActionInsert(const dict &req, int reqid)
 	getChar(req, "CombDirection", &myreq.CombDirection);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
 	getString(req, "ExchangeID", myreq.ExchangeID);
-	getString(req, "reserve2", myreq.reserve2);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getInt(req, "FrontID", &myreq.FrontID);
@@ -9170,7 +8984,6 @@ int TdApi::reqQryOrder(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "OrderSysID", myreq.OrderSysID);
 	getString(req, "InsertTimeStart", myreq.InsertTimeStart);
@@ -9187,7 +9000,6 @@ int TdApi::reqQryTrade(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "TradeID", myreq.TradeID);
 	getString(req, "TradeTimeStart", myreq.TradeTimeStart);
@@ -9204,7 +9016,6 @@ int TdApi::reqQryInvestorPosition(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9255,7 +9066,6 @@ int TdApi::reqQryInstrumentMarginRate(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
@@ -9270,7 +9080,6 @@ int TdApi::reqQryInstrumentCommissionRate(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9291,7 +9100,6 @@ int TdApi::reqQryProduct(const dict &req, int reqid)
 {
 	CThostFtdcQryProductField myreq = CThostFtdcQryProductField();
 	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "ProductClass", &myreq.ProductClass);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "ProductID", myreq.ProductID);
@@ -9303,10 +9111,7 @@ int TdApi::reqQryInstrument(const dict &req, int reqid)
 {
 	CThostFtdcQryInstrumentField myreq = CThostFtdcQryInstrumentField();
 	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
-	getString(req, "reserve2", myreq.reserve2);
-	getString(req, "reserve3", myreq.reserve3);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "ExchangeInstID", myreq.ExchangeInstID);
 	getString(req, "ProductID", myreq.ProductID);
@@ -9318,7 +9123,6 @@ int TdApi::reqQryDepthMarketData(const dict &req, int reqid)
 {
 	CThostFtdcQryDepthMarketDataField myreq = CThostFtdcQryDepthMarketDataField();
 	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryDepthMarketData(&myreq, reqid);
@@ -9354,7 +9158,6 @@ int TdApi::reqQryInvestorPositionDetail(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9389,7 +9192,6 @@ int TdApi::reqQryInvestorPositionCombineDetail(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "CombInstrumentID", myreq.CombInstrumentID);
@@ -9414,7 +9216,6 @@ int TdApi::reqQryEWarrantOffset(const dict &req, int reqid)
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
 	getString(req, "ExchangeID", myreq.ExchangeID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryEWarrantOffset(&myreq, reqid);
@@ -9427,7 +9228,6 @@ int TdApi::reqQryInvestorProductGroupMargin(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
@@ -9441,7 +9241,6 @@ int TdApi::reqQryExchangeMarginRate(const dict &req, int reqid)
 	CThostFtdcQryExchangeMarginRateField myreq = CThostFtdcQryExchangeMarginRateField();
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9454,7 +9253,6 @@ int TdApi::reqQryExchangeMarginRateAdjust(const dict &req, int reqid)
 	CThostFtdcQryExchangeMarginRateAdjustField myreq = CThostFtdcQryExchangeMarginRateAdjustField();
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryExchangeMarginRateAdjust(&myreq, reqid);
@@ -9488,7 +9286,6 @@ int TdApi::reqQryProductExchRate(const dict &req, int reqid)
 {
 	CThostFtdcQryProductExchRateField myreq = CThostFtdcQryProductExchRateField();
 	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "ProductID", myreq.ProductID);
 	int i = this->api->ReqQryProductExchRate(&myreq, reqid);
@@ -9499,7 +9296,6 @@ int TdApi::reqQryProductGroup(const dict &req, int reqid)
 {
 	CThostFtdcQryProductGroupField myreq = CThostFtdcQryProductGroupField();
 	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "ProductID", myreq.ProductID);
 	int i = this->api->ReqQryProductGroup(&myreq, reqid);
@@ -9512,7 +9308,6 @@ int TdApi::reqQryMMInstrumentCommissionRate(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryMMInstrumentCommissionRate(&myreq, reqid);
 	return i;
@@ -9524,7 +9319,6 @@ int TdApi::reqQryMMOptionInstrCommRate(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryMMOptionInstrCommRate(&myreq, reqid);
 	return i;
@@ -9536,7 +9330,6 @@ int TdApi::reqQryInstrumentOrderCommRate(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryInstrumentOrderCommRate(&myreq, reqid);
 	return i;
@@ -9581,7 +9374,6 @@ int TdApi::reqQryOptionInstrTradeCost(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getChar(req, "HedgeFlag", &myreq.HedgeFlag);
 	getDouble(req, "InputPrice", &myreq.InputPrice);
 	getDouble(req, "UnderlyingPrice", &myreq.UnderlyingPrice);
@@ -9598,7 +9390,6 @@ int TdApi::reqQryOptionInstrCommRate(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9612,7 +9403,6 @@ int TdApi::reqQryExecOrder(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "ExecOrderSysID", myreq.ExecOrderSysID);
 	getString(req, "InsertTimeStart", myreq.InsertTimeStart);
@@ -9628,7 +9418,6 @@ int TdApi::reqQryForQuote(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InsertTimeStart", myreq.InsertTimeStart);
 	getString(req, "InsertTimeEnd", myreq.InsertTimeEnd);
@@ -9644,7 +9433,6 @@ int TdApi::reqQryQuote(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "QuoteSysID", myreq.QuoteSysID);
 	getString(req, "InsertTimeStart", myreq.InsertTimeStart);
@@ -9661,7 +9449,6 @@ int TdApi::reqQryOptionSelfClose(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "OptionSelfCloseSysID", myreq.OptionSelfCloseSysID);
 	getString(req, "InsertTimeStart", myreq.InsertTimeStart);
@@ -9687,7 +9474,6 @@ int TdApi::reqQryCombInstrumentGuard(const dict &req, int reqid)
 	CThostFtdcQryCombInstrumentGuardField myreq = CThostFtdcQryCombInstrumentGuardField();
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryCombInstrumentGuard(&myreq, reqid);
@@ -9700,7 +9486,6 @@ int TdApi::reqQryCombAction(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9750,7 +9535,6 @@ int TdApi::reqQryParkedOrder(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9764,7 +9548,6 @@ int TdApi::reqQryParkedOrderAction(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "InvestorID", myreq.InvestorID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
@@ -9801,7 +9584,6 @@ int TdApi::reqQryBrokerTradingAlgos(const dict &req, int reqid)
 	memset(&myreq, 0, sizeof(myreq));
 	getString(req, "BrokerID", myreq.BrokerID);
 	getString(req, "ExchangeID", myreq.ExchangeID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryBrokerTradingAlgos(&myreq, reqid);
 	return i;
@@ -9964,30 +9746,6 @@ int TdApi::reqQueryBankAccountMoneyByFuture(const dict &req, int reqid)
 	getInt(req, "TID", &myreq.TID);
 	getString(req, "LongCustomerName", myreq.LongCustomerName);
 	int i = this->api->ReqQueryBankAccountMoneyByFuture(&myreq, reqid);
-	return i;
-};
-
-int TdApi::reqQryClassifiedInstrument(const dict &req, int reqid)
-{
-	CThostFtdcQryClassifiedInstrumentField myreq = CThostFtdcQryClassifiedInstrumentField();
-	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "InstrumentID", myreq.InstrumentID);
-	getString(req, "ExchangeID", myreq.ExchangeID);
-	getString(req, "ExchangeInstID", myreq.ExchangeInstID);
-	getString(req, "ProductID", myreq.ProductID);
-	getChar(req, "TradingType", &myreq.TradingType);
-	getChar(req, "ClassType", &myreq.ClassType);
-	int i = this->api->ReqQryClassifiedInstrument(&myreq, reqid);
-	return i;
-};
-
-int TdApi::reqQryCombPromotionParam(const dict &req, int reqid)
-{
-	CThostFtdcQryCombPromotionParamField myreq = CThostFtdcQryCombPromotionParamField();
-	memset(&myreq, 0, sizeof(myreq));
-	getString(req, "ExchangeID", myreq.ExchangeID);
-	getString(req, "InstrumentID", myreq.InstrumentID);
-	int i = this->api->ReqQryCombPromotionParam(&myreq, reqid);
 	return i;
 };
 
@@ -11511,18 +11269,6 @@ public:
 			cout << e.what() << endl;
 		}
 	};
-
-	void onRspQryCombPromotionParam(const dict &data, const dict &error, int reqid, bool last) override
-	{
-		try
-		{
-			PYBIND11_OVERLOAD(void, TdApi, onRspQryCombPromotionParam, data, error, reqid, last);
-		}
-		catch (const error_already_set &e)
-		{
-			cout << e.what() << endl;
-		}
-	};
 };
 
 
@@ -11624,8 +11370,6 @@ PYBIND11_MODULE(pyctptd, m)
 		.def("reqFromBankToFutureByFuture", &TdApi::reqFromBankToFutureByFuture)
 		.def("reqFromFutureToBankByFuture", &TdApi::reqFromFutureToBankByFuture)
 		.def("reqQueryBankAccountMoneyByFuture", &TdApi::reqQueryBankAccountMoneyByFuture)
-		.def("reqQryClassifiedInstrument", &TdApi::reqQryClassifiedInstrument)
-		.def("reqQryCombPromotionParam", &TdApi::reqQryCombPromotionParam)
 
 		.def("onFrontConnected", &TdApi::onFrontConnected)
 		.def("onFrontDisconnected", &TdApi::onFrontDisconnected)
@@ -11753,6 +11497,5 @@ PYBIND11_MODULE(pyctptd, m)
 		.def("onRtnCancelAccountByBank", &TdApi::onRtnCancelAccountByBank)
 		.def("onRtnChangeAccountByBank", &TdApi::onRtnChangeAccountByBank)
 		.def("onRspQryClassifiedInstrument", &TdApi::onRspQryClassifiedInstrument)
-		.def("onRspQryCombPromotionParam", &TdApi::onRspQryCombPromotionParam)
 		;
 }

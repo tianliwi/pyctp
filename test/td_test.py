@@ -74,7 +74,6 @@ class MhTdApi(TdApi):
         print("Logged in")
         self.logged_in = True
 
-        print(pRspUserLogin)
         print(f"max order ref: {pRspUserLogin['MaxOrderRef']}")
 
         order_ref = 100 # int(pRspUserLogin['MaxOrderRef'])
@@ -135,10 +134,10 @@ class MhTdApi(TdApi):
         nRequestID: int,
         bIsLast: bool
     ):
-        print(f"onRspOrderInsert: {pInputOrder}")
+        print(f"onRspOrderInsert:\n {pInputOrder}")
 
     def onRtnOrder(self, pOrder: dict):
-        print(pOrder)
+        print(f"onRtnOrder:\n {pOrder}")
 
     def onRspError(self, pRspInfo, nRequestID, bIsLast):
         print(pRspInfo)

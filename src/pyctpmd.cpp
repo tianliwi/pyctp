@@ -2,7 +2,9 @@
 //
 
 #include "pyctp/pyctpmd.h"
+#include <iostream>
 
+namespace py = pybind11;
 
 ///-------------------------------------------------------------------------------------
 ///C++的回调函数将数据保存到队列中
@@ -401,7 +403,6 @@ void MdApi::processRspQryMulticastInstrument(Task *task)
 	{
 		CThostFtdcMulticastInstrumentField *task_data = (CThostFtdcMulticastInstrumentField*)task->task_data;
 		data["TopicID"] = task_data->TopicID;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InstrumentNo"] = task_data->InstrumentNo;
 		data["CodePrice"] = task_data->CodePrice;
 		data["VolumeMultiple"] = task_data->VolumeMultiple;
@@ -441,7 +442,6 @@ void MdApi::processRspSubMarketData(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcSpecificInstrumentField *task_data = (CThostFtdcSpecificInstrumentField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		delete task_data;
 	}
@@ -463,7 +463,6 @@ void MdApi::processRspUnSubMarketData(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcSpecificInstrumentField *task_data = (CThostFtdcSpecificInstrumentField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		delete task_data;
 	}
@@ -485,7 +484,6 @@ void MdApi::processRspSubForQuoteRsp(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcSpecificInstrumentField *task_data = (CThostFtdcSpecificInstrumentField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		delete task_data;
 	}
@@ -507,7 +505,6 @@ void MdApi::processRspUnSubForQuoteRsp(Task *task)
 	if (task->task_data)
 	{
 		CThostFtdcSpecificInstrumentField *task_data = (CThostFtdcSpecificInstrumentField*)task->task_data;
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		delete task_data;
 	}
@@ -530,9 +527,7 @@ void MdApi::processRtnDepthMarketData(Task *task)
 	{
 		CThostFtdcDepthMarketDataField *task_data = (CThostFtdcDepthMarketDataField*)task->task_data;
 		data["TradingDay"] = toUtf(task_data->TradingDay);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
-		data["reserve2"] = toUtf(task_data->reserve2);
 		data["LastPrice"] = task_data->LastPrice;
 		data["PreSettlementPrice"] = task_data->PreSettlementPrice;
 		data["PreClosePrice"] = task_data->PreClosePrice;
@@ -588,7 +583,6 @@ void MdApi::processRtnForQuoteRsp(Task *task)
 	{
 		CThostFtdcForQuoteRspField *task_data = (CThostFtdcForQuoteRspField*)task->task_data;
 		data["TradingDay"] = toUtf(task_data->TradingDay);
-		data["reserve1"] = toUtf(task_data->reserve1);
 		data["ForQuoteSysID"] = toUtf(task_data->ForQuoteSysID);
 		data["ForQuoteTime"] = toUtf(task_data->ForQuoteTime);
 		data["ActionDay"] = toUtf(task_data->ActionDay);
@@ -631,6 +625,9 @@ void MdApi::init()
 
 int MdApi::join()
 {
+	this->task_thread.join();
+	printf("started task thread...");
+	
 	int i = this->api->Join();
 	return i;
 };
@@ -703,7 +700,6 @@ int MdApi::reqUserLogin(const dict &req, int reqid)
 	getString(req, "ProtocolInfo", myreq.ProtocolInfo);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "OneTimePassword", myreq.OneTimePassword);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "LoginRemark", myreq.LoginRemark);
 	getInt(req, "ClientIPPort", &myreq.ClientIPPort);
 	getString(req, "ClientIPAddress", myreq.ClientIPAddress);
@@ -726,7 +722,6 @@ int MdApi::reqQryMulticastInstrument(const dict &req, int reqid)
 	CThostFtdcQryMulticastInstrumentField myreq = CThostFtdcQryMulticastInstrumentField();
 	memset(&myreq, 0, sizeof(myreq));
 	getInt(req, "TopicID", &myreq.TopicID);
-	getString(req, "reserve1", myreq.reserve1);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	int i = this->api->ReqQryMulticastInstrument(&myreq, reqid);
 	return i;
@@ -746,7 +741,8 @@ public:
 	{
 		try
 		{
-			PYBIND11_OVERLOAD(void, MdApi, onFrontConnected);
+			cout << "PyMdApi::onFrontConnected" << endl;
+			PYBIND11_OVERRIDE_PURE(void, MdApi, onFrontConnected, );
 		}
 		catch (const error_already_set &e)
 		{
@@ -902,8 +898,7 @@ public:
 
 PYBIND11_MODULE(pyctpmd, m)
 {
-	class_<MdApi, PyMdApi> mdapi(m, "MdApi", module_local());
-	mdapi
+	class_<MdApi, PyMdApi>(m, "MdApi")
 		.def(init<>())
 		.def("createFtdcMdApi", &MdApi::createFtdcMdApi)
 		.def("GetApiVersion", &MdApi::GetApiVersion)
@@ -920,7 +915,6 @@ PYBIND11_MODULE(pyctpmd, m)
 		.def("reqUserLogin", &MdApi::reqUserLogin)
 		.def("reqUserLogout", &MdApi::reqUserLogout)
 		.def("reqQryMulticastInstrument", &MdApi::reqQryMulticastInstrument)
-
 		.def("onFrontConnected", &MdApi::onFrontConnected)
 		.def("onFrontDisconnected", &MdApi::onFrontDisconnected)
 		.def("onHeartBeatWarning", &MdApi::onHeartBeatWarning)

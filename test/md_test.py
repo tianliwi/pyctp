@@ -41,10 +41,10 @@ md = MhMdApi()
 md.createFtdcMdApi('../target/')
 
 # openctp 7x24
-# md.registerFront('tcp://122.51.136.165:20004')
+md.registerFront('tcp://122.51.136.165:20004')
 
 # simnow 7x24
-md.registerFront('tcp://180.168.146.187:10131')
+# md.registerFront('tcp://180.168.146.187:10131')
 
 # 实盘
 # md.registerFront('tcp://180.168.102.233:41168')

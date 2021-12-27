@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
 import sys
 from os import path
 sys.path.append(path.join(path.dirname(__file__), '..'))
 
 from target.pyctptd import TdApi
 from datetime import datetime
-from json import dumps
 from time import sleep
 
 class MhTdApi(TdApi):
@@ -87,13 +84,13 @@ class MhTdApi(TdApi):
         order_req = {
             'BrokerID': '999',
             'InvestorID': '1787',
-            'OrderRef': str(order_ref).ljust(12),
+            'OrderRef': str(order_ref).rjust(12),
             'UserID': '1787',
             'OrderPriceType': '2',
             'Direction': '0',
             'CombOffsetFlag': '0',
             'CombHedgeFlag': '1',
-            'LimitPrice': 3255,
+            'LimitPrice': 2260,
             'VolumeTotalOriginal': 1,
             'TimeCondition': '3',
             'VolumeCondition': '1',
@@ -107,7 +104,6 @@ class MhTdApi(TdApi):
         }
         rt = self.reqOrderInsert(order_req, self.req_id)
         self.req_id += 1
-        print(f'sent order, {rt}')
 
     def onRspQryOrder(
         self,
@@ -138,6 +134,9 @@ class MhTdApi(TdApi):
 
     def onRtnOrder(self, pOrder: dict):
         print(f"onRtnOrder:\n {pOrder}")
+
+    def onRtnTrade(self, pTrade: dict):
+        print(f"onRtnTrade:\n {pTrade}")
 
     def onRspError(self, pRspInfo, nRequestID, bIsLast):
         print(pRspInfo)
@@ -175,6 +174,8 @@ class MhTdApi(TdApi):
 td = MhTdApi()
 td.createFtdcTraderApi('../target')
 # td.registerFront('tcp://180.168.146.187:10130')
+td.subscribePrivateTopic(2)
+td.subscribePublicTopic(2)
 td.registerFront('tcp://122.51.136.165:20002')
 td.init()
 

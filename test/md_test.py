@@ -25,9 +25,11 @@ class MhMdApi(MdApi):
     
     def onRspUserLogin(self, data, error, task_id, is_last):
         print("my OnRspUserLogin ")
-        print(self.subscribeMarketData("m2201"))
-        print(self.subscribeMarketData("m2203"))
         print(self.subscribeMarketData("m2205"))
+        print(self.subscribeMarketData("m2205-C-3300"))
+        print(self.subscribeMarketData("m2205-P-3300"))
+        print(self.subscribeMarketData("m2205-C-3250"))
+        print(self.subscribeMarketData("m2205-P-3250"))
 
     def onRspSubMarketData(self, data, error, reqid, is_last):
         print(data)

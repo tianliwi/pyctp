@@ -199,6 +199,7 @@ void TdApi::OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CTh
 
 void TdApi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+	std::cout << "debug" << std::endl;
 	Task task = Task();
 	task.task_name = ONRSPORDERINSERT;
 	if (pInputOrder)
@@ -3973,8 +3974,6 @@ void TdApi::processRspCombActionInsert(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["FrontID"] = task_data->FrontID;
-		data["SessionID"] = task_data->SessionID;
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
 		delete task_data;
@@ -4177,8 +4176,6 @@ void TdApi::processRspQryInvestorPosition(Task *task)
 		data["YdStrikeFrozen"] = task_data->YdStrikeFrozen;
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
 		data["PositionCostOffset"] = task_data->PositionCostOffset;
-		data["TasPosition"] = task_data->TasPosition;
-		data["TasPositionCost"] = task_data->TasPositionCost;
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		delete task_data;
 	}
@@ -4649,7 +4646,6 @@ void TdApi::processRspQryInvestorPositionDetail(Task *task)
 		data["CloseAmount"] = task_data->CloseAmount;
 		data["TimeFirstVolume"] = task_data->TimeFirstVolume;
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["SpecPosiType"] = task_data->SpecPosiType;
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["CombInstrumentID"] = toUtf(task_data->CombInstrumentID);
 		delete task_data;
@@ -6688,8 +6684,6 @@ void TdApi::processErrRtnCombActionInsert(Task *task)
 		data["ExchangeID"] = toUtf(task_data->ExchangeID);
 		data["MacAddress"] = toUtf(task_data->MacAddress);
 		data["InvestUnitID"] = toUtf(task_data->InvestUnitID);
-		data["FrontID"] = task_data->FrontID;
-		data["SessionID"] = task_data->SessionID;
 		data["InstrumentID"] = toUtf(task_data->InstrumentID);
 		data["IPAddress"] = toUtf(task_data->IPAddress);
 		delete task_data;
@@ -8970,8 +8964,6 @@ int TdApi::reqCombActionInsert(const dict &req, int reqid)
 	getString(req, "ExchangeID", myreq.ExchangeID);
 	getString(req, "MacAddress", myreq.MacAddress);
 	getString(req, "InvestUnitID", myreq.InvestUnitID);
-	getInt(req, "FrontID", &myreq.FrontID);
-	getInt(req, "SessionID", &myreq.SessionID);
 	getString(req, "InstrumentID", myreq.InstrumentID);
 	getString(req, "IPAddress", myreq.IPAddress);
 	int i = this->api->ReqCombActionInsert(&myreq, reqid);
